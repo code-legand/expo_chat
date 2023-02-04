@@ -1,8 +1,11 @@
+var room_id = document.querySelector('#room-id');
+var labelRoomId = document.querySelector('#label-room-id');
 var labelUserName = document.querySelector('#label-username');
 var usernameInput = document.querySelector('#username');
 var btnJoin = document.querySelector('#btn-join');
+var btnLeave = document.querySelector('#btn-leave');
 
-var username;
+var username = usernameInput.value;
 var socket;
 var mapPeers = [];
 
@@ -17,7 +20,7 @@ function webSocketOnMessage(event) {
     var reciever_channel_name = data['message']['reciever_channel_name'];
     if (action === 'new-peer'){
         console.log('New peer connected: ' + peerUsername);
-        createOffer(peerUsername, reciever_channel_name);
+        createOfferer(peerUsername, reciever_channel_name);
     }
     if(action === 'new-offer'){
         var offer = data['message']['sdp'];
@@ -35,16 +38,21 @@ function webSocketOnMessage(event) {
 
 btnJoin.addEventListener('click', function () {
     username = usernameInput.value;
-    if (username.length < 1) {
-        alert('Please enter a username');
+    if (room_id.value.length < 1) {
+        alert('Invalid room id');
+        return;
+    }
+    if (usernameInput.value.length < 1) {
+        alert('Invalid username');
         return;
     }
     console.log('Username: ' + username);
 
-    // Hide the username input and button
+    // Hide the username input and button and room id
     usernameInput.value = '';
     usernameInput.style.display = 'none';
     btnJoin.style.display = 'none';
+    room_id.style.display = 'none';
 
     var labelUserName = document.querySelector('#label-username');
     labelUserName.innerHTML = username;
@@ -57,12 +65,17 @@ btnJoin.addEventListener('click', function () {
         wsStart = 'wss://';
     }
 
-    var endpoint = wsStart + loc.host + loc.pathname;
+    // var endpoint = wsStart + loc.host + loc.pathname;
+    var room_group_name = room_id.value;
+    var endpoint = wsStart + loc.host + loc.pathname + room_group_name + '/';
+    console.log('Websocket Endpoint: ' + endpoint);
+
     socket = new WebSocket(endpoint);
 
     socket.onopen = function (event) {
         console.log('Connected to chat server');
         
+        // sendSignal('new-room', {'room_id': 'test-room'});
         sendSignal('new-peer', {});
     }
 
@@ -76,47 +89,93 @@ btnJoin.addEventListener('click', function () {
         console.log('Error: ' + event.data);
     }
 
-
-
 });
 
 
-var localStream = new MediaStream();
+// var localStream = new MediaStream();
 
 const constraints = {
     'audio': true,
     'video': true
 };
 
-const localVideo = document.querySelector('#local-video');
-const btnToggleAudio = document.querySelector('#btn-toggle-audio');
-const btnToggleVideo = document.querySelector('#btn-toggle-video');
+// const sc_constraints = {
+//     'audio': true,
+//     'video': { facingMode: 'screen' }
+// };
 
-var userMedia = navigator.mediaDevices.getUserMedia(constraints)
-    .then(function (stream) {
-        localStream = stream;
-        localVideo.srcObject = localStream;
-        localVideo.muted = true;
 
-        var audioTracks = localStream.getAudioTracks();
-        var videoTracks = localStream.getVideoTracks();
+// const localVideo = document.querySelector('#local-video');
+// const btnToggleAudio = document.querySelector('#btn-toggle-audio');
+// const btnToggleVideo = document.querySelector('#btn-toggle-video');
 
-        audioTracks[0].enabled = true;
-        videoTracks[0].enabled = true;
+// var userMedia = navigator.mediaDevices.getUserMedia(constraints)
+//     .then(function (stream) {
+//         localStream = stream;
+//         localVideo.srcObject = localStream;
+//         localVideo.muted = true;
 
-        btnToggleAudio.addEventListener('click', function () {
-            audioTracks[0].enabled = !audioTracks[0].enabled;
-            btnToggleAudio.innerHTML = audioTracks[0].enabled ? 'Disable Audio' : 'Enable Audio';
-        });
+//         var audioTracks = localStream.getAudioTracks();
+//         var videoTracks = localStream.getVideoTracks();
 
-        btnToggleVideo.addEventListener('click', function () {
-            videoTracks[0].enabled = !videoTracks[0].enabled;
-            btnToggleVideo.innerHTML = videoTracks[0].enabled ? 'Disable Video' : 'Enable Video';
-        });
-    })
-    .catch(function (err) {
-        console.log('Error: ' + err);
-    });
+//         audioTracks[0].enabled = true;
+//         videoTracks[0].enabled = true;
+
+//         btnToggleAudio.addEventListener('click', function () {
+//             audioTracks[0].enabled = !audioTracks[0].enabled;
+//             btnToggleAudio.innerHTML = audioTracks[0].enabled ? 'Disable Audio' : 'Enable Audio';
+//         });
+
+//         btnToggleVideo.addEventListener('click', function () {
+//             videoTracks[0].enabled = !videoTracks[0].enabled;
+//             btnToggleVideo.innerHTML = videoTracks[0].enabled ? 'Disable Video' : 'Enable Video';
+//         });
+//     })
+//     .catch(function (err) {
+//         console.log('Error: ' + err);
+//     });
+
+// const videoElement = document.querySelector("local-video");
+// const screenShareButton = document.querySelector("#btn-share-screen");
+// let screenStream;
+
+// screenShareButton.addEventListener("click", async () => {
+//   try {
+//     screenStream = await navigator.mediaDevices.getDisplayMedia();
+//     videoElement.srcObject = screenStream;
+//   } catch (error) {
+//     console.error("Error sharing screen:", error);
+//   }
+// });
+
+// // Stop screen sharing
+// const stopScreenShareButton = document.querySelector("#stop-screen-share-button");
+
+// stopScreenShareButton.addEventListener("click", () => {
+//   screenStream.getTracks().forEach(track => track.stop());
+//   videoElement.srcObject = null;
+// });
+
+// var btnShareScreen = document.querySelector('#btn-share-screen');
+// btnShareScreen.addEventListener('click', function () {
+//     navigator.mediaDevices.getDisplayMedia(sc_constraints)
+//         .then(function (stream) {
+//             localStream = stream;
+//             localVideo.srcObject = localStream;
+//             localVideo.muted = true;
+//             var videoTracks = localStream.getVideoTracks();
+//             btnShareScreen.enabled = false;
+
+//             videoTracks[0].onended = async function (stream) {
+//                 navigator.mediaDevices.getDisplayMedia(constraints)
+//                     .then(function (stream) {
+//                         localStream = stream;
+//                         localVideo.srcObject = localStream;
+//                         btnShareScreen.enabled = true;
+//                     })
+//                 };
+//         })
+// });
 
 var btnSendMsg = document.querySelector('#btn-send-msg');
 var messageList = document.querySelector('#message-list');
@@ -149,7 +208,7 @@ function sendSignal(action, message) {
     socket.send(jsonStr);
 }
 
-function createOffer(peerUsername, reciever_channel_name) {
+function createOfferer(peerUsername, reciever_channel_name) {
     // ******************************** uncomment this line to test the case where the users are in different networks 
     // var peer = new RTCPeerConnection( { 'iceServers': [{'urls': 'stun:stun.l.google.com:19302'}] } );
 
@@ -164,6 +223,9 @@ function createOffer(peerUsername, reciever_channel_name) {
     dc.addEventListener('message', dcOnMessage); 
 
     var remoteVideo = createVideo('video');
+    btnShareScreen.addEventListener('toggle', function () {
+        remoteVideo = createVideo('video');
+    });
     setOnTrack(peer, remoteVideo);
 
     mapPeers[peerUsername] = [peer, dc];
@@ -198,6 +260,17 @@ function createOffer(peerUsername, reciever_channel_name) {
         .then(function () {
             console.log('Offer created');
         });
+
+    // btnLeave.addEventListener('click', function () {
+    //     console.log('leave');
+    //     sendSignal('leave', {});
+    // });
+    btnLeave.addEventListener('click', function () {
+        console.log('leave');
+        sendSignal('leave', {});
+        socket.close();
+        window.location.href = '/';
+    }); 
 }
 
 function createAnswerer(offer, peerUsername, reciever_channel_name) {
@@ -209,6 +282,9 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
     addLocalTrack(peer);
 
     var remoteVideo = createVideo('peerUsername');
+    btnShareScreen.addEventListener('toggle', function () {
+        remoteVideo = createVideo('peerUsername');
+    });
     setOnTrack(peer, remoteVideo);
 
     peer.addEventListener('datachannel', function (event) {
@@ -254,6 +330,13 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
             console.log("Answer Created")
             return peer.setLocalDescription(answer);
         });
+
+    btnLeave.addEventListener('click', function () {
+        console.log('leave');
+        socket.close();
+        window.location.href = '/';
+    });
+
 }
 
 
@@ -297,7 +380,6 @@ function removeVideo(video){
     var videoWrapper = video.parentNode;
     videoWrapper.parentNode.removeChild(videoWrapper);
 }
-
 
 function getDataChannels() {
     var dataChannels = [];
