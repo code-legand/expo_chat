@@ -4,6 +4,7 @@ var labelUserName = document.querySelector('#label-username');
 var usernameInput = document.querySelector('#username');
 var btnJoin = document.querySelector('#btn-join');
 var btnLeave = document.querySelector('#btn-leave');
+var mainGridContainer = document.querySelector('.main-grid-container');
 
 var username = usernameInput.value;
 var socket;
@@ -46,6 +47,8 @@ btnJoin.addEventListener('click', function () {
         alert('Invalid username');
         return;
     }
+
+    mainGridContainer.style.display = 'grid';
     console.log('Username: ' + username);
 
     // Hide the username input and button and room id
@@ -53,6 +56,7 @@ btnJoin.addEventListener('click', function () {
     usernameInput.style.display = 'none';
     btnJoin.style.display = 'none';
     room_id.style.display = 'none';
+    labelRoomId.style.display = 'none';
 
     var labelUserName = document.querySelector('#label-username');
     labelUserName.innerHTML = username;
@@ -75,7 +79,6 @@ btnJoin.addEventListener('click', function () {
     socket.onopen = function (event) {
         console.log('Connected to chat server');
         
-        // sendSignal('new-room', {'room_id': 'test-room'});
         sendSignal('new-peer', {});
     }
 
@@ -91,91 +94,40 @@ btnJoin.addEventListener('click', function () {
 
 });
 
-
-// var localStream = new MediaStream();
-
 const constraints = {
     'audio': true,
     'video': true
 };
 
-// const sc_constraints = {
-//     'audio': true,
-//     'video': { facingMode: 'screen' }
-// };
+const localVideo = document.querySelector('#local-video');
+const btnToggleAudio = document.querySelector('#btn-toggle-audio');
+const btnToggleVideo = document.querySelector('#btn-toggle-video');
 
+var userMedia = navigator.mediaDevices.getUserMedia(constraints)
+    .then(function (stream) {
+        localStream = stream;
+        localVideo.srcObject = localStream;
+        localVideo.muted = true;
 
-// const localVideo = document.querySelector('#local-video');
-// const btnToggleAudio = document.querySelector('#btn-toggle-audio');
-// const btnToggleVideo = document.querySelector('#btn-toggle-video');
+        var audioTracks = localStream.getAudioTracks();
+        var videoTracks = localStream.getVideoTracks();
 
-// var userMedia = navigator.mediaDevices.getUserMedia(constraints)
-//     .then(function (stream) {
-//         localStream = stream;
-//         localVideo.srcObject = localStream;
-//         localVideo.muted = true;
+        audioTracks[0].enabled = true;
+        videoTracks[0].enabled = true;
 
-//         var audioTracks = localStream.getAudioTracks();
-//         var videoTracks = localStream.getVideoTracks();
+        btnToggleAudio.addEventListener('click', function () {
+            audioTracks[0].enabled = !audioTracks[0].enabled;
+            btnToggleAudio.innerHTML = audioTracks[0].enabled ? 'Disable Audio' : 'Enable Audio';
+        });
 
-//         audioTracks[0].enabled = true;
-//         videoTracks[0].enabled = true;
-
-//         btnToggleAudio.addEventListener('click', function () {
-//             audioTracks[0].enabled = !audioTracks[0].enabled;
-//             btnToggleAudio.innerHTML = audioTracks[0].enabled ? 'Disable Audio' : 'Enable Audio';
-//         });
-
-//         btnToggleVideo.addEventListener('click', function () {
-//             videoTracks[0].enabled = !videoTracks[0].enabled;
-//             btnToggleVideo.innerHTML = videoTracks[0].enabled ? 'Disable Video' : 'Enable Video';
-//         });
-//     })
-//     .catch(function (err) {
-//         console.log('Error: ' + err);
-//     });
-
-// const videoElement = document.querySelector("local-video");
-// const screenShareButton = document.querySelector("#btn-share-screen");
-// let screenStream;
-
-// screenShareButton.addEventListener("click", async () => {
-//   try {
-//     screenStream = await navigator.mediaDevices.getDisplayMedia();
-//     videoElement.srcObject = screenStream;
-//   } catch (error) {
-//     console.error("Error sharing screen:", error);
-//   }
-// });
-
-// // Stop screen sharing
-// const stopScreenShareButton = document.querySelector("#stop-screen-share-button");
-
-// stopScreenShareButton.addEventListener("click", () => {
-//   screenStream.getTracks().forEach(track => track.stop());
-//   videoElement.srcObject = null;
-// });
-
-// var btnShareScreen = document.querySelector('#btn-share-screen');
-// btnShareScreen.addEventListener('click', function () {
-//     navigator.mediaDevices.getDisplayMedia(sc_constraints)
-//         .then(function (stream) {
-//             localStream = stream;
-//             localVideo.srcObject = localStream;
-//             localVideo.muted = true;
-//             var videoTracks = localStream.getVideoTracks();
-//             btnShareScreen.enabled = false;
-
-//             videoTracks[0].onended = async function (stream) {
-//                 navigator.mediaDevices.getDisplayMedia(constraints)
-//                     .then(function (stream) {
-//                         localStream = stream;
-//                         localVideo.srcObject = localStream;
-//                         btnShareScreen.enabled = true;
-//                     })
-//                 };
-//         })
-// });
+        btnToggleVideo.addEventListener('click', function () {
+            videoTracks[0].enabled = !videoTracks[0].enabled;
+            btnToggleVideo.innerHTML = videoTracks[0].enabled ? 'Disable Video' : 'Enable Video';
+        });
+    })
+    .catch(function (err) {
+        console.log('Error: ' + err);
+    });
 
 var btnSendMsg = document.querySelector('#btn-send-msg');
 var messageList = document.querySelector('#message-list');
@@ -222,10 +174,8 @@ function createOfferer(peerUsername, reciever_channel_name) {
     });
     dc.addEventListener('message', dcOnMessage); 
 
-    var remoteVideo = createVideo('video');
-    btnShareScreen.addEventListener('toggle', function () {
-        remoteVideo = createVideo('video');
-    });
+    var remoteVideo = createVideo(peerUsername);
+
     setOnTrack(peer, remoteVideo);
 
     mapPeers[peerUsername] = [peer, dc];
@@ -261,10 +211,6 @@ function createOfferer(peerUsername, reciever_channel_name) {
             console.log('Offer created');
         });
 
-    // btnLeave.addEventListener('click', function () {
-    //     console.log('leave');
-    //     sendSignal('leave', {});
-    // });
     btnLeave.addEventListener('click', function () {
         console.log('leave');
         sendSignal('leave', {});
@@ -281,10 +227,7 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
     var peer = new RTCPeerConnection(null);
     addLocalTrack(peer);
 
-    var remoteVideo = createVideo('peerUsername');
-    btnShareScreen.addEventListener('toggle', function () {
-        remoteVideo = createVideo('peerUsername');
-    });
+    var remoteVideo = createVideo(peerUsername);
     setOnTrack(peer, remoteVideo);
 
     peer.addEventListener('datachannel', function (event) {
@@ -295,8 +238,6 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
         peer.dc.addEventListener('message', dcOnMessage); 
         mapPeers[peerUsername] = [peer, peer.dc];
     });
-
-    
 
     peer.addEventListener('iceconnectionstatechange', function (event) {
         var iceconnectionstate = peer.iceConnectionState;
@@ -359,11 +300,34 @@ function createVideo(peerUsername) {
     var remoteVideo = document.createElement('video');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
+    remoteVideo.className = 'remote-video';
+    remoteVideo.attributes['data-username'] = peerUsername;
     remoteVideo.id = peerUsername + '-video';
+
+    var username = document.createElement('div');
+    username.className = 'username';
+    username.appendChild(document.createTextNode(peerUsername));
+
+    var fullscreenBtn = document.createElement('button');
+    fullscreenBtn.className = 'fullscreen-btn';
+    fullscreenBtn.appendChild(document.createTextNode('Fullscreen'));
+    fullscreenBtn.addEventListener('click', function () {
+        if (remoteVideo.requestFullscreen) {
+            remoteVideo.requestFullscreen();
+        } else if (remoteVideo.mozRequestFullScreen) {
+            remoteVideo.mozRequestFullScreen();
+        } else if (remoteVideo.webkitRequestFullscreen) {
+            remoteVideo.webkitRequestFullscreen();
+        } else if (remoteVideo.msRequestFullscreen) {
+            remoteVideo.msRequestFullscreen();
+        }
+    });
 
     var videoWrapper = document.createElement('div');
     videoContainer.appendChild(videoWrapper);
     videoWrapper.appendChild(remoteVideo);
+    videoWrapper.appendChild(username);
+    videoWrapper.appendChild(fullscreenBtn);
     return remoteVideo;
 }
 

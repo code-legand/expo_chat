@@ -1,16 +1,14 @@
-.video-grid-container {
+/* .video-grid-container {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    /* 3 columns */
     background-color: black;
+} */
+
+video {
+    border-radius: 10px;
+    background-color: gray;
 }
 
 .main-grid-container {
-    display: grid;
-    grid-template-columns: 60% 20%;
-}
-
-video {
-    border-radius: 25%;
-    background-color: black;
+    display: block;
 }
