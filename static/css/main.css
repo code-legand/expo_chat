@@ -4,11 +4,21 @@
     background-color: black;
 } */
 
+h1 {
+    font-family: 'Montserrat Alternates', sans-serif;
+    color: #641E16;
+}
+
+header.border-bottom{
+    border-bottom-width: 1px !important;
+    border-color: #641E16 !important;
+}
+
 video {
     border-radius: 10px;
     background-color: gray;
 }
 
 .main-grid-container {
-    display: block;
+    display: none;
 }

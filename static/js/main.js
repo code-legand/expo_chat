@@ -6,6 +6,12 @@ var btnJoin = document.querySelector('#btn-join');
 var btnLeave = document.querySelector('#btn-leave');
 var mainGridContainer = document.querySelector('.main-grid-container');
 
+btnLeave.addEventListener('click', function () {
+    console.log('Leave room');
+    socket.close();
+    location.reload();
+});
+
 var username = usernameInput.value;
 var socket;
 var mapPeers = [];
@@ -112,8 +118,8 @@ var userMedia = navigator.mediaDevices.getUserMedia(constraints)
         var audioTracks = localStream.getAudioTracks();
         var videoTracks = localStream.getVideoTracks();
 
-        audioTracks[0].enabled = true;
-        videoTracks[0].enabled = true;
+        audioTracks[0].enabled = false;
+        videoTracks[0].enabled = false;
 
         btnToggleAudio.addEventListener('click', function () {
             audioTracks[0].enabled = !audioTracks[0].enabled;
@@ -210,13 +216,6 @@ function createOfferer(peerUsername, reciever_channel_name) {
         .then(function () {
             console.log('Offer created');
         });
-
-    btnLeave.addEventListener('click', function () {
-        console.log('leave');
-        sendSignal('leave', {});
-        socket.close();
-        window.location.href = '/';
-    }); 
 }
 
 function createAnswerer(offer, peerUsername, reciever_channel_name) {
@@ -271,13 +270,6 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
             console.log("Answer Created")
             return peer.setLocalDescription(answer);
         });
-
-    btnLeave.addEventListener('click', function () {
-        console.log('leave');
-        socket.close();
-        window.location.href = '/';
-    });
-
 }
 
 
