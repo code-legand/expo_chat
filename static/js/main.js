@@ -4,13 +4,37 @@ var labelUserName = document.querySelector('#label-username');
 var usernameInput = document.querySelector('#username');
 var btnJoin = document.querySelector('#btn-join');
 var btnLeave = document.querySelector('#btn-leave');
-var mainGridContainer = document.querySelector('.main-grid-container');
+var mainStreamContainer = document.querySelector('#main-stream-container');
+var navbarAppName = document.querySelector('#navbar-app-name');
+var navbarLogo = document.getElementsByClassName('navbar-logo');
+var usernameDisplay = document.querySelector('#username-display');
+var connectionContainer = document.querySelector('#connection-container');
 
 btnLeave.addEventListener('click', function () {
     console.log('Leave room');
     socket.close();
     location.reload();
 });
+
+function mainGridEnlarge(){
+    console.log("OPENING")
+    // mainGridContainer.style.display = 'grid';
+    navbarLogo[0].height=100;
+    navbarLogo[0].width=100;
+    navbarLogo[1].height=100;
+    navbarLogo[1].width=100;
+    // console.log(navbarLogo[0])
+    navbarAppName.className = 'h1 display-4';
+    usernameInput.value = '';
+    connectionContainer.style.cssText = 'display: none !important';
+    mainStreamContainer.style.display = 'block';
+    // usernameInput.style.display = 'none';
+    // btnJoin.style.display = 'none';
+    // room_id.style.display = 'none';
+    // labelRoomId.style.display = 'none';
+    // labelUserName.innerHTML = none;
+    usernameDisplay.innerHTML = username;    
+}
 
 var username = usernameInput.value;
 var socket;
@@ -54,18 +78,11 @@ btnJoin.addEventListener('click', function () {
         return;
     }
 
-    mainGridContainer.style.display = 'grid';
+    mainGridEnlarge();
     console.log('Username: ' + username);
 
     // Hide the username input and button and room id
-    usernameInput.value = '';
-    usernameInput.style.display = 'none';
-    btnJoin.style.display = 'none';
-    room_id.style.display = 'none';
-    labelRoomId.style.display = 'none';
 
-    var labelUserName = document.querySelector('#label-username');
-    labelUserName.innerHTML = username;
 
     // create websocket connection
     var loc = window.location;
@@ -292,7 +309,9 @@ function createVideo(peerUsername) {
     var remoteVideo = document.createElement('video');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
-    remoteVideo.className = 'remote-video';
+    remoteVideo.className = 'mw-100';    
+    // remoteVideo.setAttribute('autoplay', 'on');
+    // remoteVideo.setAttribute('playsinline', 'on');
     remoteVideo.attributes['data-username'] = peerUsername;
     remoteVideo.id = peerUsername + '-video';
 
@@ -316,6 +335,7 @@ function createVideo(peerUsername) {
     });
 
     var videoWrapper = document.createElement('div');
+    videoWrapper.className = 'flex-grow-1 col-12 col-md-6 col-xl-4';
     videoContainer.appendChild(videoWrapper);
     videoWrapper.appendChild(remoteVideo);
     videoWrapper.appendChild(username);

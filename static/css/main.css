@@ -4,7 +4,7 @@
     background-color: black;
 } */
 
-h1 {
+* {
     font-family: 'Montserrat Alternates', sans-serif;
     color: #641E16;
 }
@@ -19,6 +19,14 @@ video {
     background-color: gray;
 }
 
-.main-grid-container {
+#main-stream-container {
     display: none;
+}
+
+.connection-container {
+    display: block;
+}
+
+input[type="text"] {
+    border: 1px solid #641E16;
 }
