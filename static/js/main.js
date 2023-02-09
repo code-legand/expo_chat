@@ -33,7 +33,7 @@ function mainGridEnlarge(){
     // room_id.style.display = 'none';
     // labelRoomId.style.display = 'none';
     // labelUserName.innerHTML = none;
-    usernameDisplay.innerHTML = username;    
+    usernameDisplay.innerHTML = 'welcome, ' + username;
 }
 
 var username = usernameInput.value;
@@ -126,6 +126,7 @@ const localVideo = document.querySelector('#local-video');
 const btnToggleAudio = document.querySelector('#btn-toggle-audio');
 const btnToggleVideo = document.querySelector('#btn-toggle-video');
 
+var retryCount = 0;
 var userMedia = navigator.mediaDevices.getUserMedia(constraints)
     .then(function (stream) {
         localStream = stream;
@@ -140,16 +141,23 @@ var userMedia = navigator.mediaDevices.getUserMedia(constraints)
 
         btnToggleAudio.addEventListener('click', function () {
             audioTracks[0].enabled = !audioTracks[0].enabled;
-            btnToggleAudio.innerHTML = audioTracks[0].enabled ? 'Disable Audio' : 'Enable Audio';
+            btnToggleAudio.innerHTML = audioTracks[0].enabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+            btnToggleAudio.className = audioTracks[0].enabled ? 'btn btn-lg border-3 rounded-circle p-2 green-button' : 'btn btn-lg border-3 rounded-circle p-2 red-button';
+            
         });
 
         btnToggleVideo.addEventListener('click', function () {
             videoTracks[0].enabled = !videoTracks[0].enabled;
-            btnToggleVideo.innerHTML = videoTracks[0].enabled ? 'Disable Video' : 'Enable Video';
+            btnToggleVideo.innerHTML = videoTracks[0].enabled ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            btnToggleVideo.className = videoTracks[0].enabled ? 'btn btn-lg border-3 rounded-circle p-2 green-button' : 'btn btn-lg border-3 rounded-circle p-2 red-button';
         });
     })
     .catch(function (err) {
         console.log('Error: ' + err);
+        retryCount++;
+        if (retryCount < 5) {
+            userMedia;
+        }
     });
 
 var btnSendMsg = document.querySelector('#btn-send-msg');
@@ -162,7 +170,7 @@ btnSendMsg.addEventListener('click', function () {
         return;
     }
     var li = document.createElement('li');
-    li.appendChild(document.createTextNode('Me:' + message));
+    li.appendChild(document.createTextNode('Me: ' + message));
     messageList.appendChild(li);
 
     var dataChannels = getDataChannels();
@@ -316,12 +324,16 @@ function createVideo(peerUsername) {
     remoteVideo.id = peerUsername + '-video';
 
     var username = document.createElement('div');
-    username.className = 'username';
+    username.className = 'username ';
     username.appendChild(document.createTextNode(peerUsername));
 
     var fullscreenBtn = document.createElement('button');
-    fullscreenBtn.className = 'fullscreen-btn';
-    fullscreenBtn.appendChild(document.createTextNode('Fullscreen'));
+    fullscreenBtn.className = 'fullscreen-btn btn btn-sm btn-outline-light rounded-circle';
+    fullscreenBtn.setAttribute('title', 'Fullscreen');
+    var fullscreenIcon = document.createElement('i');
+    fullscreenIcon.className = 'fas fa-expand';
+    fullscreenBtn.appendChild(fullscreenIcon);
+    // fullscreenBtn.appendChild(document.createTextNode('Fullscreen'));
     fullscreenBtn.addEventListener('click', function () {
         if (remoteVideo.requestFullscreen) {
             remoteVideo.requestFullscreen();
@@ -334,12 +346,25 @@ function createVideo(peerUsername) {
         }
     });
 
+    var controlWrapper = document.createElement('div');
+    controlWrapper.className = 'container-fluid';
+    controlRow = document.createElement('div');
+    controlRow.className = 'row';
+    controlWrapper.appendChild(controlRow);
+    controlCol1 = document.createElement('div');
+    controlCol1.className = 'col-6';
+    controlCol2 = document.createElement('div');
+    controlCol2.className = 'col-6 d-flex justify-content-end';
+    controlRow.appendChild(controlCol1);
+    controlRow.appendChild(controlCol2);
+    controlCol1.appendChild(username);
+    controlCol2.appendChild(fullscreenBtn);
+
     var videoWrapper = document.createElement('div');
     videoWrapper.className = 'flex-grow-1 col-12 col-md-6 col-xl-4';
     videoContainer.appendChild(videoWrapper);
     videoWrapper.appendChild(remoteVideo);
-    videoWrapper.appendChild(username);
-    videoWrapper.appendChild(fullscreenBtn);
+    videoWrapper.appendChild(controlWrapper);
     return remoteVideo;
 }
 
