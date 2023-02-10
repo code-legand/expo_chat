@@ -1,132 +1,30 @@
-var room_id = document.querySelector('#room-id');
-var labelRoomId = document.querySelector('#label-room-id');
-var labelUserName = document.querySelector('#label-username');
-var usernameInput = document.querySelector('#username');
-var btnJoin = document.querySelector('#btn-join');
-var btnLeave = document.querySelector('#btn-leave');
-var mainStreamContainer = document.querySelector('#main-stream-container');
-var navbarAppName = document.querySelector('#navbar-app-name');
-var navbarLogo = document.getElementsByClassName('navbar-logo');
-var usernameDisplay = document.querySelector('#username-display');
-var connectionContainer = document.querySelector('#connection-container');
-
-btnLeave.addEventListener('click', function () {
-    console.log('Leave room');
-    socket.close();
-    location.reload();
-});
-
-function mainGridEnlarge(){
-    console.log("OPENING")
-    // mainGridContainer.style.display = 'grid';
-    navbarLogo[0].height=100;
-    navbarLogo[0].width=100;
-    navbarLogo[1].height=100;
-    navbarLogo[1].width=100;
-    // console.log(navbarLogo[0])
-    navbarAppName.className = 'h1 display-4';
-    usernameInput.value = '';
-    connectionContainer.style.cssText = 'display: none !important';
-    mainStreamContainer.style.display = 'block';
-    // usernameInput.style.display = 'none';
-    // btnJoin.style.display = 'none';
-    // room_id.style.display = 'none';
-    // labelRoomId.style.display = 'none';
-    // labelUserName.innerHTML = none;
-    usernameDisplay.innerHTML = 'welcome, ' + username;
-}
+const room_id = document.querySelector('#room-id');
+const labelRoomId = document.querySelector('#label-room-id');
+const labelUserName = document.querySelector('#label-username');
+const usernameInput = document.querySelector('#username');
+const btnJoin = document.querySelector('#btn-join');
+const btnLeave = document.querySelector('#btn-leave');
+const mainStreamContainer = document.querySelector('#main-stream-container');
+const navbarAppName = document.querySelector('#navbar-app-name');
+const navbarLogo = document.getElementsByClassName('navbar-logo');
+const usernameDisplay = document.querySelector('#username-display');
+const connectionContainer = document.querySelector('#connection-container');
+const btnSendMsg = document.querySelector('#btn-send-msg');
+const messageList = document.querySelector('#message-list');
+const messageInput = document.querySelector('#msg');
+const localVideo = document.querySelector('#local-video');
+const btnToggleAudio = document.querySelector('#btn-toggle-audio');
+const btnToggleVideo = document.querySelector('#btn-toggle-video');
 
 var username = usernameInput.value;
 var socket;
 var mapPeers = [];
-
-function webSocketOnMessage(event) {
-    var data = JSON.parse(event.data);
-    var peerUsername = data['peer'];
-    var action = data['action'];
-    if (peerUsername == username) {
-        return;
-    }
-
-    var reciever_channel_name = data['message']['reciever_channel_name'];
-    if (action === 'new-peer'){
-        console.log('New peer connected: ' + peerUsername);
-        createOfferer(peerUsername, reciever_channel_name);
-    }
-    if(action === 'new-offer'){
-        var offer = data['message']['sdp'];
-        createAnswerer(offer, peerUsername, reciever_channel_name);
-        return;
-    }
-
-    if(action === 'new-answer'){
-        var answer = data['message']['sdp'];
-        var peer = mapPeers[peerUsername][0];
-        peer.setRemoteDescription(answer);
-        return;
-    }
-}
-
-btnJoin.addEventListener('click', function () {
-    username = usernameInput.value;
-    if (room_id.value.length < 1) {
-        alert('Invalid room id');
-        return;
-    }
-    if (usernameInput.value.length < 1) {
-        alert('Invalid username');
-        return;
-    }
-
-    mainGridEnlarge();
-    console.log('Username: ' + username);
-
-    // Hide the username input and button and room id
-
-
-    // create websocket connection
-    var loc = window.location;
-    var wsStart = 'ws://';
-
-    if (loc.protocol === 'https:') {
-        wsStart = 'wss://';
-    }
-
-    // var endpoint = wsStart + loc.host + loc.pathname;
-    var room_group_name = room_id.value;
-    var endpoint = wsStart + loc.host + loc.pathname + room_group_name + '/';
-    console.log('Websocket Endpoint: ' + endpoint);
-
-    socket = new WebSocket(endpoint);
-
-    socket.onopen = function (event) {
-        console.log('Connected to chat server');
-        
-        sendSignal('new-peer', {});
-    }
-
-    socket.addEventListener('message', webSocketOnMessage);
-
-    socket.onclose = function (event) {
-        console.log('Disconnected from chat server');
-    }
-
-    socket.onerror = function (event) {
-        console.log('Error: ' + event.data);
-    }
-
-});
 
 const constraints = {
     'audio': true,
     'video': true
 };
 
-const localVideo = document.querySelector('#local-video');
-const btnToggleAudio = document.querySelector('#btn-toggle-audio');
-const btnToggleVideo = document.querySelector('#btn-toggle-video');
-
-var retryCount = 0;
 var userMedia = navigator.mediaDevices.getUserMedia(constraints)
     .then(function (stream) {
         localStream = stream;
@@ -153,42 +51,90 @@ var userMedia = navigator.mediaDevices.getUserMedia(constraints)
         });
     })
     .catch(function (err) {
-        console.log('Error: ' + err);
-        retryCount++;
-        if (retryCount < 5) {
-            userMedia;
+        var message = 'Unable to access your camera and microphone. Please check your camera and microphone settings and try again.';
+        var con = confirm(message);
+        if (con) {
+            window.location.reload();
         }
     });
 
-var btnSendMsg = document.querySelector('#btn-send-msg');
-var messageList = document.querySelector('#message-list');
-var messageInput = document.querySelector('#msg');
-
-btnSendMsg.addEventListener('click', function () {
-    var message = messageInput.value;
-    if (message.length < 1) {
+btnJoin.addEventListener('click', function () {
+    username = usernameInput.value;
+    if (room_id.value.length < 1) {
+        alert('Invalid room id');
         return;
     }
-    var li = document.createElement('li');
-    li.appendChild(document.createTextNode('Me: ' + message));
-    messageList.appendChild(li);
 
-    var dataChannels = getDataChannels();
-    message = username + ': ' + message;
-
-    for (index in dataChannels) {
-        dataChannels[index].send(message);
+    if (usernameInput.value.length < 1) {
+        alert('Invalid username');
+        return;
     }
-    messageInput.value = '';
+
+    mainGridEnlarge();
+    var loc = window.location;
+    var wsStart = 'ws://';
+
+    if (loc.protocol === 'https:') {
+        wsStart = 'wss://';
+    }
+
+    var room_group_name = room_id.value;
+    var endpoint = wsStart + loc.host + loc.pathname + room_group_name + '/';
+    socket = new WebSocket(endpoint);
+
+    socket.onopen = function (event) {
+        sendSignal('new-peer', {});
+    }
+
+    socket.addEventListener('message', webSocketOnMessage);
+
+    socket.onerror = function (event) {
+        alert('Connection error');
+    }
 });
 
-function sendSignal(action, message) {
-    var jsonStr = JSON.stringify({
-        'peer': username,
-        'action': action,
-        'message': message,
-    });
-    socket.send(jsonStr);
+btnLeave.addEventListener('click', function () {
+    socket.close();
+    location.reload();
+});
+
+function mainGridEnlarge(){
+    navbarLogo[0].height=100;
+    navbarLogo[0].width=100;
+    navbarLogo[1].height=100;
+    navbarLogo[1].width=100;
+    navbarAppName.className = 'h1 display-4';
+    usernameInput.value = '';
+    connectionContainer.style.cssText = 'display: none !important';
+    mainStreamContainer.style.display = 'block';
+    usernameDisplay.innerHTML = 'welcome, ' + username;
+}
+
+function webSocketOnMessage(event) {
+    var data = JSON.parse(event.data);
+    var peerUsername = data['peer'];
+    var action = data['action'];
+    if (peerUsername == username) {
+        return;
+    }
+
+    var reciever_channel_name = data['message']['reciever_channel_name'];
+    if (action === 'new-peer'){
+        createOfferer(peerUsername, reciever_channel_name);
+    }
+
+    if(action === 'new-offer'){
+        var offer = data['message']['sdp'];
+        createAnswerer(offer, peerUsername, reciever_channel_name);
+        return;
+    }
+
+    if(action === 'new-answer'){
+        var answer = data['message']['sdp'];
+        var peer = mapPeers[peerUsername][0];
+        peer.setRemoteDescription(answer);
+        return;
+    }
 }
 
 function createOfferer(peerUsername, reciever_channel_name) {
@@ -200,15 +146,11 @@ function createOfferer(peerUsername, reciever_channel_name) {
     addLocalTrack(peer);
 
     var dc = peer.createDataChannel('channel');
-    dc.addEventListener('open', function (event) {
-        console.log('Data channel opened');
-    });
+
     dc.addEventListener('message', dcOnMessage); 
 
     var remoteVideo = createVideo(peerUsername);
-
     setOnTrack(peer, remoteVideo);
-
     mapPeers[peerUsername] = [peer, dc];
 
     peer.addEventListener('iceconnectionstatechange', function (event) {
@@ -223,9 +165,9 @@ function createOfferer(peerUsername, reciever_channel_name) {
             removeVideo(remoteVideo);
         }
     });
+
     peer.addEventListener('icecandidate', function (event) {
         if (event.candidate) {
-            console.log('new ice candidate');
             return;
         }
 
@@ -238,9 +180,6 @@ function createOfferer(peerUsername, reciever_channel_name) {
         .then(function (offer) {
             return peer.setLocalDescription(offer);
         })
-        .then(function () {
-            console.log('Offer created');
-        });
 }
 
 function createAnswerer(offer, peerUsername, reciever_channel_name) {
@@ -253,19 +192,14 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
 
     var remoteVideo = createVideo(peerUsername);
     setOnTrack(peer, remoteVideo);
-
     peer.addEventListener('datachannel', function (event) {
         peer.dc = event.channel;
-        peer.dc.addEventListener('open', function (event) {
-            console.log('Data channel opened');
-        });
         peer.dc.addEventListener('message', dcOnMessage); 
         mapPeers[peerUsername] = [peer, peer.dc];
     });
 
     peer.addEventListener('iceconnectionstatechange', function (event) {
         var iceconnectionstate = peer.iceConnectionState;
-
         if (iceconnectionstate === 'disconnected' || iceconnectionstate === 'failed' || iceconnectionstate === 'closed') {
             delete mapPeers[peerUsername];
 
@@ -275,9 +209,9 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
             removeVideo(remoteVideo);
         }
     });
+
     peer.addEventListener('icecandidate', function (event) {
         if (event.candidate) {
-            console.log('new ice candidate');
             return;
         }
 
@@ -288,15 +222,12 @@ function createAnswerer(offer, peerUsername, reciever_channel_name) {
     });
     peer.setRemoteDescription(offer)
         .then(function () {
-            console.log('Remote description set');
             return peer.createAnswer();
         })
         .then(function (answer) {
-            console.log("Answer Created")
             return peer.setLocalDescription(answer);
         });
 }
-
 
 function addLocalTrack(peer) {
     localStream.getTracks().forEach(track => {
@@ -305,21 +236,12 @@ function addLocalTrack(peer) {
     return;
 }
 
-function dcOnMessage(event) {
-    var message = event.data;
-    var li = document.createElement('li');
-    li.appendChild(document.createTextNode(message));
-    messageList.appendChild(li);
-}
-
 function createVideo(peerUsername) {
     var videoContainer = document.querySelector('#video-container');
     var remoteVideo = document.createElement('video');
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
     remoteVideo.className = 'mw-100';    
-    // remoteVideo.setAttribute('autoplay', 'on');
-    // remoteVideo.setAttribute('playsinline', 'on');
     remoteVideo.attributes['data-username'] = peerUsername;
     remoteVideo.id = peerUsername + '-video';
 
@@ -333,7 +255,7 @@ function createVideo(peerUsername) {
     var fullscreenIcon = document.createElement('i');
     fullscreenIcon.className = 'fas fa-expand';
     fullscreenBtn.appendChild(fullscreenIcon);
-    // fullscreenBtn.appendChild(document.createTextNode('Fullscreen'));
+
     fullscreenBtn.addEventListener('click', function () {
         if (remoteVideo.requestFullscreen) {
             remoteVideo.requestFullscreen();
@@ -377,10 +299,23 @@ function setOnTrack(peer, remoteVideo) {
     });
 }
 
-function removeVideo(video){
-    var videoWrapper = video.parentNode;
-    videoWrapper.parentNode.removeChild(videoWrapper);
-}
+btnSendMsg.addEventListener('click', function () {
+    var message = messageInput.value;
+    if (message.length < 1) {
+        return;
+    }
+    var li = document.createElement('li');
+    li.appendChild(document.createTextNode('Me: ' + message));
+    messageList.appendChild(li);
+
+    var dataChannels = getDataChannels();
+    message = username + ': ' + message;
+
+    for (index in dataChannels) {
+        dataChannels[index].send(message);
+    }
+    messageInput.value = '';
+});
 
 function getDataChannels() {
     var dataChannels = [];
@@ -389,4 +324,25 @@ function getDataChannels() {
         dataChannels.push(dataChannel);
     }
     return dataChannels;
+}
+
+function sendSignal(action, message) {
+    var jsonStr = JSON.stringify({
+        'peer': username,
+        'action': action,
+        'message': message,
+    });
+    socket.send(jsonStr);
+}
+
+function dcOnMessage(event) {
+    var message = event.data;
+    var li = document.createElement('li');
+    li.appendChild(document.createTextNode(message));
+    messageList.appendChild(li);
+}
+
+function removeVideo(video){
+    var videoWrapper = video.parentNode;
+    videoWrapper.parentNode.removeChild(videoWrapper);
 }

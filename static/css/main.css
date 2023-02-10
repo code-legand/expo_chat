@@ -1,9 +1,3 @@
-/* .video-grid-container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    background-color: black;
-} */
-
 * {
     font-family: 'Montserrat Alternates', sans-serif;
     color: #641E16;
@@ -73,16 +67,10 @@ footer {
     background-color: green;
     border: 2px solid darkgreen;
     width: 50px;
-    /*add internal shadow*/
     box-shadow: inset 0 0 5px rgba(0,0,0,0.5);
-    /*round corners*/
     border-radius: 25%;
 }
 
 .fa-phone-alt{
     transform: rotate(135deg);
 }
-
-
-
-
