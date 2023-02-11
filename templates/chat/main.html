@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}"/>
+    <link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.png' %}" />
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" rel="stylesheet" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +19,8 @@
 
 <body class="bg-light">
     <div class="container-fluid">
+
+        <!-- Main container for the header -->
         <header
             class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between mb-4 border-bottom">
             <div class="col-md-3 text-start">
@@ -26,6 +28,7 @@
                     class="d-inline-block align-text-top navbar-logo">
             </div>
             <div>
+                <!-- Main header text -->
                 <h1 class="h1 display-1" id="navbar-app-name">EXPO | CHAT</h1>
             </div>
             <div class="col-md-3 text-end d-none d-none d-xl-block">
@@ -35,13 +38,17 @@
         </header>
     </div>
 
+    <!-- Container for the main content -->
     <div class="container-fluid d-flex mw-100 m-auto" id="connection-container" style="min-height: 50vh;">
         <div class="row m-auto">
             <div class="form-floating col-md-6 col-12 my-2 mx-auto">
+                <!-- Username input -->
                 <input type="text" id="username" class="form-control text-center" placeholder="eg. person1">
                 <label for="username" id="label-username" class="text-center">USER NAME</label>
             </div>
+
             <div class="form-floating col-md-6 col-12 my-2 mx-auto">
+                <!-- Room ID input. The Access Key is the room ID -->
                 <input type="text" id="room-id" class="form-control text-center" placeholder="eg. 3Eac6Cfh">
                 <label for="room-id" id="label-room-id" class="text-center">ACCESS KEY</label>
             </div>
@@ -51,30 +58,38 @@
         </div>
     </div>
 
+    <!-- container for main video stream display -->
     <div class="container-fluid" id="main-stream-container">
+        <!-- display the current username -->
         <h3 class="text-xl-start text-center"><span id="username-display"></span></h3>
         <div class="row">
             <div class="col-12 col-xl-9">
-
+                <!-- container-fluid for video -->
                 <div class="container-fluid d-flex">
                     <div class="row m-auto" id="video-container">
                         <div class="flex-grow-1 col-12 col-md-6 col-xl-4">
+                            <!-- video element for local video display -->
                             <video id="local-video" class="mw-100" autoplay playinline></video>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- footer for audio and video controls -->
             <footer class="footer fixed-bottom py-2">
+                <!-- container for audio and video controls -->
                 <div class="container-fluid d-flex justify-content-center">
+                    <!-- container for toggle audio button -->
                     <div class="px-4">
                         <button id="btn-toggle-audio" class="btn btn-lg border-3 rounded-circle p-2 red-button"
                             title="Audio"><i class="fas fa-microphone-slash"></i></i></button>
                     </div>
+                    <!-- container for toggle video button -->
                     <div class="px-4">
                         <button id="btn-toggle-video" class="btn btn-lg border-3 rounded-circle p-2 red-button"
                             title="Video"><i class="fas fa-video-slash"></i></button>
                     </div>
+                    <!-- container for end call button -->
                     <div class="px-4">
                         <button id="btn-leave" class="btn btn-lg border-3 rounded-circle p-2 red-button"
                             title="End Call"><i class="fas fa-phone-alt"></i></button>
@@ -82,12 +97,16 @@
                 </div>
             </footer>
 
+            <!-- container for chat -->
             <div class="chat col-12 col-xl-3">
+                <!-- display "CHAT" header -->
                 <h3 class="text-xl-start text-center">CHAT</h3>
+                <!-- container for chat messages -->
                 <div id="messages" class="container-fluid w-100 border border-3 rounded-3"
                     style="min-height: 50vh; border-color: #641E16 !important;">
                     <ul id="message-list" style="list-style-type: none"></ul>
                 </div>
+                <!-- container for message input field and send button -->
                 <div><input class="form-control" id="msg" type="text" placeholder="Enter your message here"
                         aria-label="Message input field">
                     <button id="btn-send-msg" class="btn btn-md button-text">Send Message</button>
@@ -95,6 +114,7 @@
             </div>
         </div>
 
+        <!-- Spacer div to push the footer to the bottom of the page -->
         <div class="py-5"></div>
     </div>
 
